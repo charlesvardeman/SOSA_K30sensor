@@ -1,0 +1,37 @@
+
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX dcat: <http://www.w3.org/ns/cat#>
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+PREFIX sosa-ext: <http://www.w3.org/ns/ssn/ext/>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
+PREFIX time: <http://www.w3.org/2006/time#>
+PREFIX qudt-1-1: <http://qudt.org/2.1/schema/qudt#>
+PREFIX qudt-unit-1-1: <http://qudt.org/2.1/vocab/unit#>
+
+# SELECT ?CO2__PPM_
+
+CONSTRUCT {
+       <urn:uuid:e2927871-5906-4410-9854-66c791436259> a sosa:Sensor .
+
+   ?u rdf:type sosa:Observation ;
+      sosa:madeBySensor <urn:uuid:e2927871-5906-4410-9854-66c791436259> ;
+      sosa:hasResult [
+        rdf:type qudt-1-1:QuantityValue ;
+        qudt-1-1:numericValue ?q ;
+        qudt-1-1:unit qudt-unit-1-1:PPM ;
+      ];
+      sosa:resultTime [
+        rdf:type time:Instant ;
+        time:inXSDDateTimeStamp ?t ;
+      ] .
+}
+WHERE {
+  BIND (UUID() AS ?u)
+  BIND (xsd:integer(?CO2__PPM_) AS ?q)
+  BIND (xsd:dateTime($id) AS  ?t)
+
+}
+
+
