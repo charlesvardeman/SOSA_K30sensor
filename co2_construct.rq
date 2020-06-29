@@ -7,13 +7,19 @@ PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
 PREFIX time: <http://www.w3.org/2006/time#>
+PREFIX tagg: <https://www.w3.org/2006/time/agg#>
 PREFIX qudt-1-1: <http://qudt.org/2.1/schema/qudt#>
 PREFIX qudt-unit-1-1: <http://qudt.org/2.1/vocab/unit#>
+PREFIX ex: <http://example.org/tagg/>
 
 # SELECT ?CO2__PPM_
 
 CONSTRUCT {
        <urn:uuid:e2927871-5906-4410-9854-66c791436259> a sosa:Sensor .
+
+       ex:dronetrajectory a tagg:TemporalAggregate ;
+       rdfs:label "Trajectory traversed by UAV" ;
+       time:hasBeginning
 
    ?u rdf:type sosa:Observation ;
       sosa:madeBySensor <urn:uuid:e2927871-5906-4410-9854-66c791436259> ;
@@ -31,6 +37,7 @@ WHERE {
   BIND (UUID() AS ?u)
   BIND (xsd:integer(?CO2__PPM_) AS ?q)
   BIND (xsd:dateTime($id) AS  ?t)
+  BIND (URI(CONCAT('fixes/', STR(?ROWNUM))) AS ?FIX)
 
 }
 
