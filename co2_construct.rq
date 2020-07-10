@@ -9,6 +9,9 @@ PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
 PREFIX time: <http://www.w3.org/2006/time#>
 PREFIX qudt-1-1: <http://qudt.org/2.1/schema/qudt#>
 PREFIX qudt-unit-1-1: <http://qudt.org/2.1/vocab/unit#>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX sf: <http://www.opengis.net/ont/sf#>
+
 
 # SELECT ?CO2__PPM_
 
@@ -19,10 +22,15 @@ CONSTRUCT {
 
        <https://www.co2meter.com/products/k-30-co2-sensor-module#this> a sosa:Sensor .
 
+    ?droneTraj  a  time:TemporalAggregate ;
+       rdfs:label "Trajectory traversed by UAV" .
+
+
      ?obsCol a sosa:ObservationCollection ;
      sosa:observedProperty <http://purl.obolibrary.org/obo/ENVO_04000004>;
      sosa:madeBySensor <https://www.co2meter.com/products/k-30-co2-sensor-module#this> ;
-     sosa:hasMember ?u .
+     sosa:hasMember ?u ;
+     rdfs:label "Observation Collection of CO2 Measurements" .
 
      ?u rdf:type sosa:Observation ;
       sosa:hasResult [
@@ -30,18 +38,35 @@ CONSTRUCT {
         qudt-1-1:numericValue ?q ;
         qudt-1-1:unit qudt-unit-1-1:PPM ;
       ];
-      sosa:resultTime [
-        rdf:type time:Instant ;
-        time:inXSDDateTimeStamp ?t ;
-      ] .
+      sosa:resultTime ?fix .
+
+     ?fixuri a time:Instant, geo:Feature;
+     rdfs:label "A Observation Fix" ;
+     time:inXSDDateTimeStamp ?t ;
+     geo:hasDefaultGeometry ?locuri .
+
+     ?locuri a geo:Geometry ;
+     geo:asWKT ?pos ;
+     a sf:Point .
+
+
+
 }
 WHERE {
   BIND (xsd:integer(?CO2__PPM_) AS ?q)
   BIND (xsd:dateTime($id) AS  ?t)
   BIND (UUID() as ?u)
+
+  BIND (URI(CONCAT('fix', STR(?ROWNUM-1))) AS ?fixuri)
+  BIND (URI(CONCAT('loc', STR(?ROWNUM-1))) AS ?locuri)
+  # BIND( if(condition,then,else) as ?result )
+
+  BIND (STRDT(CONCAT("<http://www.opengis.net/def/crs/EPSG/0/4326> ","POINT(",STR(?Latitude), " ", STR(?Longitude)," ",STR(?Altitude),")"),geo:wktLiteral) AS ?pos)
+
     {
     BIND (UUID() AS ?sensor)
     BIND (UUID() AS ?obsCol)
+    BIND (UUID() AS ?droneTraj)
     }
 }
 
