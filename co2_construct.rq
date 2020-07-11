@@ -11,6 +11,7 @@ PREFIX qudt-1-1: <http://qudt.org/2.1/schema/qudt#>
 PREFIX qudt-unit-1-1: <http://qudt.org/2.1/vocab/unit#>
 PREFIX geo: <http://www.opengis.net/ont/geosparql#>
 PREFIX sf: <http://www.opengis.net/ont/sf#>
+PREFIX traj:  <http://w3id.org/daselab/onto/trajectory#>
 
 
 # SELECT ?CO2__PPM_
@@ -22,17 +23,24 @@ CONSTRUCT {
 
        <https://www.co2meter.com/products/k-30-co2-sensor-module#this> a sosa:Sensor .
 
-    ?droneTraj  a  time:TemporalAggregate ;
-       rdfs:label "Trajectory traversed by UAV" .
+    ?droneURI a sosa:FeatureOfInterest, geo:Feature, traj:MovingObject .
+
+    ?droneTraj  a  time:TemporalAggregate, geo:Feature, traj:Trajectory ;
+       rdfs:label "Trajectory traversed by UAV" ;
+       time:hasBeginning <fix1> ;
+       geo:sfContains ?fixuri .
+
+
 
 
      ?obsCol a sosa:ObservationCollection ;
      sosa:observedProperty <http://purl.obolibrary.org/obo/ENVO_04000004>;
      sosa:madeBySensor <https://www.co2meter.com/products/k-30-co2-sensor-module#this> ;
-     sosa:hasMember ?u ;
+     sosa:hasMember ?obs ;
      rdfs:label "Observation Collection of CO2 Measurements" .
 
-     ?u rdf:type sosa:Observation ;
+     ?obs rdf:type sosa:Observation, traj:Attribute;
+     rdfs:label ?obslabel ;
       sosa:hasResult [
         rdf:type qudt-1-1:QuantityValue ;
         qudt-1-1:numericValue ?q ;
@@ -40,9 +48,10 @@ CONSTRUCT {
       ];
       sosa:resultTime ?fix .
 
-     ?fixuri a time:Instant, geo:Feature;
-     rdfs:label "A Observation Fix" ;
+     ?fixuri a time:Instant, geo:Feature, traj:Fix;
+     rdfs:label ?fixlabel ;
      time:inXSDDateTimeStamp ?t ;
+     traj:hasAttribute ?obs ;
      geo:hasDefaultGeometry ?locuri .
 
      ?locuri a geo:Geometry ;
@@ -55,15 +64,19 @@ CONSTRUCT {
 WHERE {
   BIND (xsd:integer(?CO2__PPM_) AS ?q)
   BIND (xsd:dateTime($id) AS  ?t)
-  BIND (UUID() as ?u)
 
-  BIND (URI(CONCAT('fix', STR(?ROWNUM-1))) AS ?fixuri)
-  BIND (URI(CONCAT('loc', STR(?ROWNUM-1))) AS ?locuri)
+  BIND (URI(CONCAT('fix', STR(?ROWNUM))) AS ?fixuri)
+  BIND (URI(CONCAT('obs', STR(?ROWNUM))) AS ?obs)
+  BIND (URI(CONCAT('loc', STR(?ROWNUM))) AS ?locuri)
+  BIND (CONCAT("Trajectory ","Fix", STR(?ROWNUM)) AS ?fixlabel)
+  BIND (CONCAT("CO_2 Observation ","Obs", STR(?ROWNUM)) AS ?obslabel)
+
   # BIND( if(condition,then,else) as ?result )
 
   BIND (STRDT(CONCAT("<http://www.opengis.net/def/crs/EPSG/0/4326> ","POINT(",STR(?Latitude), " ", STR(?Longitude)," ",STR(?Altitude),")"),geo:wktLiteral) AS ?pos)
 
     {
+    BIND (URI('drone') AS ?droneURI)
     BIND (UUID() AS ?sensor)
     BIND (UUID() AS ?obsCol)
     BIND (UUID() AS ?droneTraj)
