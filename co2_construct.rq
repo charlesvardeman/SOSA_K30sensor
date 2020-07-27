@@ -1,8 +1,8 @@
 
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX dcat: <http://www.w3.org/ns/cat#>
+PREFIX dct: <http://purl.org/dc/terms/>
 PREFIX sosa: <http://www.w3.org/ns/sosa/>
-PREFIX sosa-ext: <http://www.w3.org/ns/ssn/ext/>
 PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
@@ -12,6 +12,8 @@ PREFIX qudt-unit-1-1: <http://qudt.org/2.1/vocab/unit#>
 PREFIX geo: <http://www.opengis.net/ont/geosparql#>
 PREFIX sf: <http://www.opengis.net/ont/sf#>
 PREFIX traj:  <http://w3id.org/daselab/onto/trajectory#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX landrs: <http://schema.landrs.org/schema/>
 
 
 # SELECT ?CO2__PPM_
@@ -21,11 +23,42 @@ PREFIX traj:  <http://w3id.org/daselab/onto/trajectory#>
 
 CONSTRUCT {
 
-       <https://www.co2meter.com/products/k-30-co2-sensor-module#this> a sosa:Sensor .
 
-    ?droneURI a sosa:FeatureOfInterest, geo:Feature, traj:MovingObject .
 
-    ?droneTraj  a  time:TemporalAggregate, geo:Feature, traj:Trajectory ;
+      <https://www.co2meter.com/products/k-30-co2-sensor-module#this> a sosa:Sensor, prov:Agent ;
+      sosa:isHostedBy ?droneURI .
+
+      ?provassn a prov:Association ;
+       prov:agent <https://orcid.org/0000-0001-7877-2391> ;
+       prov:hadRole landrs:Pilot ;
+       prov:hadPlan ?provplan .
+
+      ?provplan a prov:Plan, sosa:Procedure .
+
+      ?flight a landrs:Event, time:TemporalEntity, prov:Activity ;
+      time:hasBeginning [
+          a time:instant ;
+          time:inXSDDateTimeStamp "2016-09-28T17:37:11Z"^^xsd:dateTimeStamp
+
+        ] ;
+      time:hasEnd [
+        a time:instant ;
+        time:inXSDDateTimeStamp "2016-09-28T17:45:05Z"^^xsd:dateTimeStamp
+      ] .
+
+      ?dataset a dcat:Dataset, prov:Entity ;
+      dct:title "CO2 Observation Collection"@en ;
+      dct:type <http://www.w3.org/ns/sosa/ObservationCollection> ;
+      prov:wasGeneratedBy ?obsCol .
+
+
+      ?droneURI a sosa:FeatureOfInterest, geo:Feature, traj:MovingObject, sosa:Platform, landrs:UAV ;
+      sosa:hosts <https://www.co2meter.com/products/k-30-co2-sensor-module#this>.
+
+
+      <https://orcid.org/0000-0001-7877-2391> a prov:Agent .
+
+      ?droneTraj  a  time:TemporalAggregate, geo:Feature, traj:Trajectory ;
        rdfs:label "Trajectory traversed by UAV" ;
        time:hasBeginning <fix1> ;
        geo:sfContains ?fixuri .
@@ -36,10 +69,12 @@ CONSTRUCT {
      ?obsCol a sosa:ObservationCollection ;
      sosa:observedProperty <http://purl.obolibrary.org/obo/ENVO_04000004>;
      sosa:madeBySensor <https://www.co2meter.com/products/k-30-co2-sensor-module#this> ;
+     prov:qualifiedAssociation ?provassn;
+     sosa:usedProcedure ?provplan ;
      sosa:hasMember ?obs ;
      rdfs:label "Observation Collection of CO2 Measurements" .
 
-     ?obs rdf:type sosa:Observation, traj:Attribute;
+     ?obs rdf:type sosa:Observation, prov:Activity, traj:Attribute;
      rdfs:label ?obslabel ;
       sosa:hasResult [
         rdf:type qudt-1-1:QuantityValue ;
@@ -80,6 +115,10 @@ WHERE {
     BIND (UUID() AS ?sensor)
     BIND (UUID() AS ?obsCol)
     BIND (UUID() AS ?droneTraj)
+    BIND (UUID() AS ?provassn)
+    BIND (UUID() AS ?provplan)
+    BIND (UUID() AS ?dataset)
+    BIND (UUID() AS ?flight)
     }
 }
 
