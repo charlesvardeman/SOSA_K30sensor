@@ -1,0 +1,24 @@
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX dcat: <http://www.w3.org/ns/cat#>
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+PREFIX sosa-ext: <http://www.w3.org/ns/ssn/ext/>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
+PREFIX time: <http://www.w3.org/2006/time#>
+PREFIX qudt-1-1: <http://qudt.org/2.1/schema/qudt#>
+PREFIX qudt-unit-1-1: <http://qudt.org/2.1/vocab/unit#>
+
+CONSTRUCT {
+    ?obsColl a sosa-ext:ObservationCollection ;
+    sosa:hasMember ?obs .
+
+
+}
+WHERE
+{
+ ?obs a sosa:Observation
+ {
+    BIND(UUID() as ?obsColl)
+ }
+}
