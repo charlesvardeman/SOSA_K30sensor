@@ -77,7 +77,7 @@ CONSTRUCT {
      ?obs rdf:type sosa:Observation, prov:Activity, traj:Attribute;
      rdfs:label ?obslabel ;
       sosa:hasResult [
-        rdf:type qudt-1-1:QuantityValue ;
+        rdf:type qudt-1-1:QuantityValue, sosa:Result ;
         qudt-1-1:numericValue ?q ;
         qudt-1-1:unit qudt-unit-1-1:PPM ;
       ];
